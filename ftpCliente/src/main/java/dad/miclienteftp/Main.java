@@ -10,16 +10,29 @@ import java.util.Map;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-
+/**
+ * La clase Main contiene el metodo principal que se conecta a un servidor FTP, recupera una lista de archivos y directorios,
+ * imprime sus nombres, tamanos y tipos, y descarga un archivo desde el servidor.
+ * @author Francisco yeray gomez carrion
+ */
 public class Main {
 	
+	/**
+	 * Un mapa que asocia constantes enteras que representan los tipos de archivos con sus nombres correspondientes.
+	 * @author Francisco yeray gomez carrion
+	 */
 	@SuppressWarnings("serial")
 	public static final Map<Integer, String> FILE_TYPE = new HashMap<Integer, String>() {{
 		put(FTPFile.DIRECTORY_TYPE, "Directorio");
 		put(FTPFile.FILE_TYPE, "Fichero");
 		put(FTPFile.SYMBOLIC_LINK_TYPE, "Enlace");
 	}};
-
+	
+	/**
+	 * Este metodo es el punto de entrada del programa. Se conecta a un servidor FTP, accede a un directorio,
+	 * lista los archivos del directorio y descarga un archivo del servidor.
+	 * @param args los argumentos de la linea de comandos (no se utilizan en este programa)
+	 */
 	public static void main(String [] args) {
 		try {
 			
