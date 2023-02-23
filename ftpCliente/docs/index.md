@@ -32,7 +32,7 @@ En la imagen anterior se puede ver la ventana que se abre al pulsar el item cone
 
 En la imagen se puede ver la etiqueta la cual de primera no tiene valor y sera donde se muestra la ruta actual dentro del sistema de archivos del servidor FTP "Por defecto se encuentra en /". Para que se muestre el valor de la ruta se necesita primero estar conectado al servidor FTP.
 
-#### Boton Generar PDF
+#### Boton Generar PDF (Esta funcionalidad no se encuentra desarrollada)
 
 <img src="./imagenesGuia/2023-02-22-23-42-23-image.png" title="" alt="" width="434">
 
