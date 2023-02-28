@@ -72,6 +72,8 @@ public class PrimaryController implements Initializable {
 	@FXML
 	private Button botonGenerarPDF;
 	@FXML
+	private Button botonDescargar;
+	@FXML
 	private TableView<FTP> tableViewFichero;
 	@FXML
 	private TableColumn<FTP, String> tableColumnNombre;
@@ -96,6 +98,7 @@ public class PrimaryController implements Initializable {
 		tableColumnTipo.setCellValueFactory(v -> v.getValue().tipoFicheroProperty());
 		itemDesconectar.setDisable(true);
 		botonGenerarPDF.setDisable(true);
+		botonDescargar.setDisable(true);
 		seleccionado.bind(tableViewFichero.getSelectionModel().selectedItemProperty());
 		booleanConectado.bindBidirectional(conectadoProperty.conectadoProperty());
 //		conectadoProperty.conectadoProperty().addListener((obs, oldValue, newValue) -> {
@@ -138,10 +141,12 @@ public class PrimaryController implements Initializable {
 			itemDesconectar.setDisable(true);
 			itemConectar.setDisable(false);
 			botonGenerarPDF.setDisable(true);
+			botonDescargar.setDisable(true);
 		} else {
 			itemDesconectar.setDisable(false);
 			itemConectar.setDisable(true);
 			botonGenerarPDF.setDisable(false);
+			botonDescargar.setDisable(false);
 		}
 		String dir = controlador.getDirec();
 		labelDirectorio.setText(dir);
@@ -239,19 +244,26 @@ public class PrimaryController implements Initializable {
 	 * Genera un nuevo fichero pdf con el contenido del tableView en ese momento.
 	 */
 	@FXML
-	private void onBotonGenerarPDF() throws IOException {
+	private void onBotonGenerarPDF() {
 		System.out.println("generarPDF");
 		Document document = new Document();
-		String path = new File(".").getCanonicalPath();
+		
+		/*String path = new File(".").getCanonicalPath();
 		path = path + "/releases";
 		Date fechaActual = new Date();
 		SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy-hh-mm");
-		String fechaFormateada = formato.format(fechaActual);
+		String fechaFormateada = formato.format(fechaActual);*/
 		try {
         	
-        	String FILE_NAME = path + "/RutaActural-Generado-"+fechaFormateada+".pdf";
-        	
-            PdfWriter.getInstance(document, new FileOutputStream(new File(FILE_NAME)));
+        	/*String FILE_NAME = path + "/RutaActural-Generado-"+fechaFormateada+".pdf";
+        	*/
+			FileChooser fileChooser = new FileChooser();
+			fileChooser.setTitle("Guardar archivo");
+			// Configurar los filtros de extensión
+			fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.PDF", "*.pdf"));
+			File archivoSeleccionado = fileChooser.showSaveDialog(null);
+			String rutaPdf = archivoSeleccionado.getAbsolutePath();
+            PdfWriter.getInstance(document, new FileOutputStream(new File(rutaPdf)));
  
             document.open();
        
@@ -303,11 +315,14 @@ public class PrimaryController implements Initializable {
             
             document.add(table);
             document.close();
+            App.info("Fichero generado", "El fichero se a generado con exito.");
  
         } catch (FileNotFoundException | DocumentException e) {
             e.printStackTrace();
+            App.error("Error al generar el fichero pdf");
         } catch (IOException e) {
 			e.printStackTrace();
+			App.error("Error al generar el fichero pdf");
 		}
 
 	}
