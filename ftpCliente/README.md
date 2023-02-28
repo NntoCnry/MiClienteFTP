@@ -1,91 +1,180 @@
-# Guía de usuario - MiClienteFTP
+# Mi Cliente FTP
 
-Bienvenidos a la guía de usuario sobre la aplicación MiClienteFTP, la cual es una implementación de un sencillo cliente FTP que permite explorar el sistema de ficheros de un servidor, descargar archivos y generar un documento PDF con el contenido del directorio donde te encuentres. Por aqui dejo el enlace a github Page https://nntocnry.github.io/MiClienteFTP/
+Implementar un sencillo cliente FTP que permite explorar el sistema de ficheros de un servidor y descargar archivos. 
 
+## La librería `apache.commons.net`
 
+Esta librería open source desarrollada por el proyecto Apache contiene clases para acceder a determinados servicios de red. Entre las clases de esta librería encontramos **FTPClient**; esta clase nos permite conectar a un servidor FTP, explorar su contenido, subir y descargar archivos, etc. 
 
-## Descripción de la interfaz
+A continuación se expone un trozo de código con un ejemplo de uso del cliente FTP: 
 
-Para comenzar con la guía se va a detallar la interfaz por partes, mostrando las diferentes ventanas que incluye la aplicación.
+```java
+package dad.miclienteftp;
 
-### Ventana principal:
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
-<img title="" src="./imagenesGuia/2023-02-22-23-05-16-image.png" alt="" width="379">
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 
-Como se puede ver en la imagen la ventana principal es algo simple la cual cuenta con un **menú** en la parte superior izquierda, por otro lado cuenta con una **etiqueta** debajo de la barra del menu, tambien se encuentra un **boton** el cual sirve para generar un PDF y por ultimo se encuentra una **tabla** la cual contiene los valores de los contenidos del sistema de archivos del servidor.
+public class Main {
+	
+	@SuppressWarnings("serial")
+	public static final Map<Integer, String> FILE_TYPE = new HashMap<Integer, String>() {{
+		put(FTPFile.DIRECTORY_TYPE, "Directorio");
+		put(FTPFile.FILE_TYPE, "Fichero");
+		put(FTPFile.SYMBOLIC_LINK_TYPE, "Enlace");
+	}};
 
-#### Menú
+	public static void main(String [] args) {
+		try {
+			
+			// instanciar el cliente FTP
+			FTPClient cliente = new FTPClient();
+			
+			// conectar con el servidor FTP
+			cliente.connect("ftp.rediris.es", 21);
+			
+			// iniciar sesión anónima (login)
+			cliente.login("", "");
+			
+			// cambiar el directorio actual en el servidor
+			cliente.changeWorkingDirectory("/debian/dists");
 
-<img src="./imagenesGuia/2023-02-22-23-10-08-image.png" title="" alt="" width="198">
+			// recuperar el nombre del directorio actual
+			String directorioActual = cliente.printWorkingDirectory();
+			System.out.println("Directorio actual: " + directorioActual);
 
-El menu cuenta con dos items uno para conectar con el servidor ftp, donde al pulsarlo abre otra ventana para introducir los datos de la conexión con el servidor FTP. y por otro lado esta el item de desconectar sirve para finalizar la conexión con el servidor FTP. El item de desconectar se encuentra desactivado al entrar en la aplicación debido a que no se a realizado la conexión una vez se realice una conexión con el servidor FTP cambiaria es estado al reves es decir que conectar estaria desabilitado y desconectar se activaria.
+			// recuperar un listado de los ficheros y directorios del directorio actual del servidor
+			FTPFile [] ficheros = cliente.listFiles();
+			
+			// recorrer el listado de archivos recuperados
+			System.out.format("+------------------------+%n");
+			System.out.format("| Archivos del servidor: |%n");
+			System.out.format("+------------------------+-----------------+----------------+-----------------+%n");
+			System.out.format("| Nombre                                   | Tamaño (bytes) | Tipo            |%n");
+			System.out.format("+------------------------------------------+----------------+-----------------+%n");
+			Arrays.stream(ficheros)
+				.forEach(fichero -> {
+				    System.out.format("| %-40s | %-14d | %-15s |%n", fichero.getName(), fichero.getSize(), FILE_TYPE.get(fichero.getType()));
+				});
+			System.out.format("+------------------------------------------+----------------+-----------------+%n");
+			
+			// cambiar el directorio padre en el servidor
+			cliente.changeWorkingDirectory("..");
 
-##### Ventana conectar
+			// descargar un fichero
+			File descarga = new File("welcome.msg");
+			FileOutputStream flujo = new FileOutputStream(descarga);
+			cliente.retrieveFile("welcome.msg", flujo);
+			flujo.flush();
+			flujo.close();
+			
+			// desconectar del servidor
+			cliente.disconnect();
+			
+		} catch (SocketException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-<img src="./imagenesGuia/2023-02-22-23-30-34-image.png" title="" alt="" width="354">
+}
+```
 
-En la imagen anterior se puede ver la ventana que se abre al pulsar el item conectar del menu. Aqui temos dos modos de realizar conexión uno seria el modo anonimo "sin usuario ni contraseña" y por otro lado se puede introducir el nombre de usuario y contraseña en concreto. Para realizar la conexión pulsar el boton conectar. Si se pulsa en cancelar se cierra la ventana, se vuelve a la ventana anterior y no realiza la conexión.
+## Apartados
 
-#### Etiqueta
+### 1. Conectar al servidor FTP
 
-<img src="./imagenesGuia/2023-02-22-23-34-48-image.png" title="" alt="" width="594">
+Abrir un cuadro de diálogo donde se piden los datos para conectar e iniciar la conexión con el servidor FTP usando la clase `FTPClient`: 
 
-En la imagen se puede ver la etiqueta la cual de primera no tiene valor y sera donde se muestra la ruta actual dentro del sistema de archivos del servidor FTP "Por defecto se encuentra en /". Para que se muestre el valor de la ruta se necesita primero estar conectado al servidor FTP.
+![](docs/001.png)
 
-#### Boton Generar PDF (Esta funcionalidad no se encuentra desarrollada)
+**Este cuadro de diálogo se abrirá cuando seleccionemos la opción "Conectar" del menú "Servidor" (ver más adelante).** 
 
-<img src="./imagenesGuia/2023-02-22-23-42-23-image.png" title="" alt="" width="434">
+![](docs/002.png)
 
-Este boton se encuentra desactivado al entra a la aplicación, para habilitarlo necesitamos tener una sesión realizada con el servidor. Una vez esta habilitado el boton si lo pulsamos nos va a generar un fichero PDF con el contenido de la tabla que contiene los ficheros y subdirectorios del directorio actual "ruta donde pulsamos el boton".
+Si se pulsa **Cancelar** no se conectará con el servidor. 
 
-#### Tabla
+Si se pulsa **Conectar**, se establecerá la conexión con el servidor indicado y se iniciará la sesión. 
 
-<img src="./imagenesGuia/2023-02-22-23-49-05-image.png" title="" alt="" width="527">
+En caso de **éxito** se deberá mostrar lo siguiente, se deberá deshabilitar la opción "Conectar" del menú "Servidor" y habilitar "Desconectar", y cerrar el diálogo de conexión: 
 
-Esta tabla contiene tres columnas las cuales contiene la informacion del nombre del fichero, el tamaño y el tipo. La tabla se va a rellenar de datos una vez que realicemos la conexión con el servidor y por defecto comenzara a mostrar el contenido del directorio raiz del servidor FTP "/". Si hacemos doble click sobre una fila la cual es de tipo "directorio" o "enlace" nos vamos a mover de directorio y se va a actualizar el contenido de la misma tabla con los correspondientes ficheros y subdirectorios que contenga el mismo. Y si hacemos doble click sobre una fila la cual es de tipo fichero se va a abrir una ventana emergente con el explorador de archivos para seleccionar donde guardar el fichero seleccionado. Por ultimo para volver hacia atras con hacer doble click sobre la fila que contiene el nombre de ".." para ir al directorio anterior.
+![](docs/003.png)
 
-## Como se usa
+En caso de **error**, se indicará también al usuario y no se cerrará el cuadro de diálogo: 
 
-Para comenzar vamos al menu y pulsamos la parte de conectar "Para realizar la conexión con el servidor FTP"
+![](docs/004.png)
 
-<img src="./imagenesGuia/2023-02-22-23-53-01-image.png" title="" alt="" width="383">
+### 2. Desconectar del servidor FTP
 
-Se abrira una nueva ventana para introducir los datos del servidor en este caso seran los siguientes:
+Implementar la funcionalidad la opción "Desconectar" del menú.  
 
-            Servidor: ftp.rediris.es   "ya esta por defecto"
+![](docs/005.png)
 
-            Puerto: 21  "ya esta por defecto"
+Se deberá mostrar el siguiente mensaje, así como habilitar la opción "Conectar" del menú "Servidor" y deshabilitar la opción "Desconectar": 
 
-            Usuario: chuck
+![](docs/006.png)
 
-            Contraseña: norris
+### 3. Listar sistema de ficheros remoto
 
-<img src="./imagenesGuia/2023-02-22-23-56-49-image.png" title="" alt="" width="346">
+Nada más establecer conexión con el servidor, se deberá rellenar la tabla del formulario principal del cliente FTP con los ficheros y directorios del servidor FTP (ver código inicial para saber cómo recuperar los ficheros del servidor): 
 
-y con esto le damos a conectar y ya dependiendo de si se se realizo con exito o si fallo al realizarse la conexión nos mostrar una ventana donde nos indicara.
+#### Cliente desconectado. No se lista nada.
 
-<img src="./imagenesGuia/2023-02-22-23-57-10-image.png" title="" alt="" width="346">
+![](docs/007.png)
 
-Si se realiza la conexión al cerrar la ventana emergente donde avisa del exito de la conexión se van a rellenar la etiqueta con el valor de la ruta en la que nos encontramos dentro del servidor FTP y tambien se rellena la tabla con los datos de los ficheros, subdirectorios y enlaces que se encuentran dentro del servidor.
+#### Cliente conectado. Se lista el contenido del directorio raíz "/".
 
-<img title="" src="./imagenesGuia/2023-02-22-23-59-54-image.png" alt="" width="474">
+![](docs/008.png)
 
-Para movernos entre las difenrentes rutas podemos hacer doble click en las filas que son de tipo "directorio" o "enlace" y si queremos volver atras podemos hacer doble click en la fila que contiene el nombre ".."
+Al conectar se deberá mostrar en la etiqueta encima de la tabla el directorio actual en el que nos encontramos dentro del servidor FTP, y rellenar la tabla con el contenido de este directorio.
 
-Y por ultimo realizamos la desconexión con el servidor. Para ello pulsamos el item de Desconectar que se encuentra dentro del menu. Con esto basta para realizar la desconexión con servidor FTP.
+### 4. Explorar sistema de ficheros remoto
 
-<img src="./imagenesGuia/2023-02-23-00-05-31-image.png" title="" alt="" width="622">
+Al hacer doble clic sobre un directorio de la tabla se deberá entrar en él, actualizando la ruta que hay encima de la tabla, indicando así que hemos cambiado de directorio y rellenando la tabla con el contenido del nuevo directorio: 
 
-<img src="./imagenesGuia/2023-02-23-00-05-47-image.png" title="" alt="" width="622">
+![](docs/009.png)
 
-Una vez cerrada la conexión con el servidor se vacian los datos de la tabla y se vuelve a activar el item del menu conectar, se desactiva el item del menu desconectar y tambien se desactiva el boton de generar PDF. Debido a que ya no hay una conexion activa.
+Debemos implementar el evento [`onMouseClicked`](https://openjfx.io/javadoc/11/javafx.graphics/javafx/scene/Node.html#setOnMouseClicked()) de la tabla, de un modo similar al siguiente:
 
-<img title="" src="./imagenesGuia/2023-02-23-00-07-52-image.png" alt="" width="422">
+```java
+@FXML
+private void onTablaMouseClicked(MouseEvent e) {
+    // si se ha pulsado dos veces y hay un elemento seleccionado en la tabla
+    if (e.getClickCount() == 2 && tabla.getSelectionModel().getSelectedItem() != null) {
+        // TODO implementar aquí la acción del doble click
+    }	
+}
+```
 
-Con esto ya estaria descrita la interfaz que usa la aplicación y como se puede usar la misma.
+### 5. Descargar  
 
+Seleccionar un fichero de la lista, pulsar el botón "Descargar": 
 
+![](docs/010.png)
 
-Un saludo,
+A continuación se mostrará un cuadro de diálogo donde se elegirá el destino local del fichero remoto seleccionado: 
 
-Francisco Yeray Gómez Carrion -- NntoCNRY 
+![](docs/011.png)
+
+Al pulsar "Guardar" se descargará el archivo a nuestro ordenador desde el servidor FTP, mostrando un mensaje de éxito: "El fichero ha sido descargado". 
+
+## Calificación
+
+Cada apartado se calificará en función del grado de cumplimiento de lo especificado para dicho apartado.  
+
+|**Apartados** |**Puntuación** |
+| - | - |
+|1. Conectar |20 |
+|2. Desconectar |15 |
+|3. Listar sistema de ficheros remoto |25 |
+|4. Explorar sistema de ficheros remoto |30 |
+|5. Descargar un fichero |10 |
+|**Total** |**100** |

@@ -49,5 +49,10 @@
             </TableView>
          </children>
       </AnchorPane>
+      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#onClickDescargar" prefWidth="640.0" text="Descargar" textAlignment="CENTER" wrapText="true" VBox.vgrow="ALWAYS">
+         <VBox.margin>
+            <Insets bottom="15.0" left="50.0" right="50.0" top="15.0" />
+         </VBox.margin>
+      </Button>
    </children>
 </VBox>

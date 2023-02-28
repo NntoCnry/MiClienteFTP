@@ -32,6 +32,11 @@
 			<artifactId>commons-net</artifactId>
 			<version>3.8.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itextpdf</artifactId>
+			<version>5.5.10</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -54,6 +59,27 @@
 						<id>default-cli</id>
 						<configuration>
 							<mainClass>dam.dad.recuperacion.ftpCliente.App</mainClass>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.github.fvarrui</groupId>
+				<artifactId>javapackager</artifactId>
+				<version>1.6.7</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>package</goal>
+						</goals>
+						<configuration>
+							<!-- mandatory -->
+							<!-- optional -->
+							<bundleJre>true</bundleJre>
+							<generateInstaller>true</generateInstaller>
+							<administratorRequired>false</administratorRequired>
+							<platform>>windows</platform>
 						</configuration>
 					</execution>
 				</executions>

@@ -1,10 +1,22 @@
 package dam.dad.recuperacion.ftpCliente;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.ResourceBundle;
+
+import com.itextpdf.text.*;
+import com.itextpdf.text.Font.FontFamily;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 import dad.miclienteftp.FTP;
 import javafx.beans.property.BooleanProperty;
@@ -20,6 +32,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Cell;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -168,16 +181,6 @@ public class PrimaryController implements Initializable {
 			labelDirectorio.setText(sc.getDirec());
 			tableViewFichero.getItems().clear();
 			tableViewFichero.itemsProperty().bind(sc.lista());
-		} else {
-			FileChooser fileChooser = new FileChooser();
-			fileChooser.setTitle("Guardar archivo");
-			// Configurar los filtros de extensión
-			fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Todos los archivos", "*.*"));
-			File archivoSeleccionado = fileChooser.showSaveDialog(null);
-			String descarga = tableViewFichero.getSelectionModel().getSelectedItem().getNombreFichero();
-			FileOutputStream flujo = new FileOutputStream(archivoSeleccionado);
-			sc.descargar(descarga, flujo);
-
 		}
 	}
 
@@ -212,12 +215,101 @@ public class PrimaryController implements Initializable {
 		}
 	}
 
+	@FXML
+	private void onClickDescargar() throws IOException {
+		String descarga = tableViewFichero.getSelectionModel().getSelectedItem().getNombreFichero();
+		System.out.println(descarga);
+		if (descarga == null || descarga == "") {
+			System.out.println("nadaaaaaaaaaaa");
+		} else if (tableViewFichero.getSelectionModel().getSelectedItem().getTipoFichero() == "Fichero"){
+			FileChooser fileChooser = new FileChooser();
+			fileChooser.setTitle("Guardar archivo");
+			// Configurar los filtros de extensión
+			fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Todos los archivos", "*.*"));
+			File archivoSeleccionado = fileChooser.showSaveDialog(null);
+			FileOutputStream flujo = new FileOutputStream(archivoSeleccionado);
+			sc.descargar(descarga, flujo);
+			App.info("Exito","El fichero ha sido descargado.");
+		}else {
+			App.error("Debes selecionar un fichero no un directorio ni enlace.");
+		}
+	}
+
 	/**
 	 * Genera un nuevo fichero pdf con el contenido del tableView en ese momento.
 	 */
 	@FXML
 	private void onBotonGenerarPDF() throws IOException {
 		System.out.println("generarPDF");
+		Document document = new Document();
+		String path = new File(".").getCanonicalPath();
+		path = path + "/releases";
+		Date fechaActual = new Date();
+		SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy-hh-mm");
+		String fechaFormateada = formato.format(fechaActual);
+		try {
+        	
+        	String FILE_NAME = path + "/RutaActural-Generado-"+fechaFormateada+".pdf";
+        	
+            PdfWriter.getInstance(document, new FileOutputStream(new File(FILE_NAME)));
+ 
+            document.open();
+       
+            Paragraph rutaText = new Paragraph();
+            rutaText.add(sc.getDirec());
+            rutaText.setAlignment(Paragraph.ALIGN_CENTER);
+            document.add(rutaText);
+            
+            PdfPTable table = new PdfPTable(3); // 3 columns.
+            table.setWidthPercentage(100); //Width 100%
+            table.setSpacingBefore(10f); //Space before table
+            table.setSpacingAfter(10f); //Space after table
+            
+            //Set Column widths
+            float[] columnWidths = {1f, 1f, 1f};
+            table.setWidths(columnWidths);
+            
+            PdfPCell cell1 = new PdfPCell(new Paragraph("Nombre"));
+            cell1.setPaddingLeft(10);
+            cell1.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+     
+            PdfPCell cell2 = new PdfPCell(new Paragraph("Tamaño"));
+            cell2.setPaddingLeft(10);
+            cell2.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+     
+            PdfPCell cell3 = new PdfPCell(new Paragraph("Tipo"));
+            cell3.setPaddingLeft(10);
+            cell3.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell3.setVerticalAlignment(Element.ALIGN_MIDDLE);
+           
+            table.addCell(cell1);
+            table.addCell(cell2);
+            table.addCell(cell3);
+           
+            ListProperty<FTP> a = sc.lista();
+            System.out.println(sc.lista());
+            PdfPCell cell = new PdfPCell();
+            
+            for (int i = 0; i < a.size(); i++) {
+            	cell = new PdfPCell(new Paragraph(String.valueOf(a.get(i).getNombreFichero().toString())));
+                table.addCell(cell);
+                cell = new PdfPCell(new Paragraph(String.valueOf(a.get(i).getTamanoFichero())));
+                table.addCell(cell);
+                cell = new PdfPCell(new Paragraph(String.valueOf(a.get(i).getTipoFichero().toString())));
+                table.addCell(cell);
+            }
+            
+            document.add(table);
+            document.close();
+ 
+        } catch (FileNotFoundException | DocumentException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }
