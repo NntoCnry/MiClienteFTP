@@ -1,6 +1,6 @@
 # Guía de usuario - MiClienteFTP
 
-Bienvenidos a la guía de usuario sobre la aplicación MiClienteFTP, la cual es una implementación de un sencillo cliente FTP que permite explorar el sistema de ficheros de un servidor, descargar archivos y generar un documento PDF con el contenido del directorio donde te encuentres. Por aqui dejo el enlace a github Page https://nntocnry.github.io/MiClienteFTP/
+Bienvenidos a la guía de usuario sobre la aplicación MiClienteFTP, la cual es una implementación de un sencillo cliente FTP que permite explorar el sistema de ficheros de un servidor, descargar archivos y generar un documento PDF con el contenido del directorio donde te encuentres.
 
 
 
