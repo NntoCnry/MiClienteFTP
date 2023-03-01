@@ -207,10 +207,12 @@ public class PrimaryController implements Initializable {
 				itemDesconectar.setDisable(true);
 				itemConectar.setDisable(false);
 				botonGenerarPDF.setDisable(true);
+				botonDescargar.setDisable(true);
 			} else {
 				itemDesconectar.setDisable(false);
 				itemConectar.setDisable(true);
 				botonGenerarPDF.setDisable(false);
+				botonDescargar.setDisable(false);
 			}
 			System.out.println(sc.getConected());
 			App.info("Desconexión", "Se ha cerrado conexión con éxito");
